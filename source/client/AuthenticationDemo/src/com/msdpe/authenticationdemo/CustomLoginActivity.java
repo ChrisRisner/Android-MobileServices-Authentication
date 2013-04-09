@@ -1,17 +1,27 @@
 package com.msdpe.authenticationdemo;
 
+import com.google.gson.JsonObject;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.TableJsonOperationCallback;
+
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 
 public class CustomLoginActivity extends Activity {
 	
-	private Button btnCancel;
-	private Button btnLogin;
-	private Button btnRegisterForAccount;
+	private final String TAG = "CustomLoginActivity";
+	private Button mBtnCancel;
+	private Button mBtnLogin;
+	private Button mBtnRegisterForAccount;
+	private EditText mTxtUsername;
+	private EditText mTxtPassword;
 	private Activity mActivity;
 
 	@Override
@@ -22,14 +32,16 @@ public class CustomLoginActivity extends Activity {
 		mActivity = this;
 		
 		//Get UI objects
-		btnCancel = (Button) findViewById(R.id.btnCancel);
-		btnLogin = (Button) findViewById(R.id.btnLogin);
-		btnRegisterForAccount = (Button) findViewById(R.id.btnRegisterForAccount);
+		mBtnCancel = (Button) findViewById(R.id.btnCancel);
+		mBtnLogin = (Button) findViewById(R.id.btnLogin);
+		mBtnRegisterForAccount = (Button) findViewById(R.id.btnRegisterForAccount);
+		mTxtUsername = (EditText) findViewById(R.id.txtUsername);
+		mTxtPassword = (EditText) findViewById(R.id.txtPassword);
 		
 		//Add on click listeners
-		btnCancel.setOnClickListener(cancelClickListener);
-		btnLogin.setOnClickListener(loginClickListener);
-		btnRegisterForAccount.setOnClickListener(registerClickListener);
+		mBtnCancel.setOnClickListener(cancelClickListener);
+		mBtnLogin.setOnClickListener(loginClickListener);
+		mBtnRegisterForAccount.setOnClickListener(registerClickListener);
 		
 	}
 
@@ -49,13 +61,30 @@ public class CustomLoginActivity extends Activity {
 	
 	View.OnClickListener loginClickListener = new OnClickListener() {		
 		@Override
-		public void onClick(View v) {			
+		public void onClick(View v) {	
+			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
+			final AuthService authService = myApp.getAuthService();
+			authService.login(mTxtUsername.getText().toString(), mTxtPassword.getText().toString(), new TableJsonOperationCallback() {				
+				@Override
+				public void onCompleted(JsonObject jsonObject, Exception exception,
+						ServiceFilterResponse response) {
+					if (exception == null) {
+						authService.setUser(jsonObject);
+						Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
+						startActivity(loggedInIntent);
+					} else {
+						Log.e(TAG, "Error loggin in: " + exception.getMessage());
+					}
+				}
+			});
 		}
 	};
 
 	View.OnClickListener registerClickListener = new OnClickListener() {		
 		@Override
-		public void onClick(View v) {			
+		public void onClick(View v) {	
+			Intent registerIntent = new Intent(getApplicationContext(), RegisterAccountActivity.class);
+			startActivity(registerIntent);
 		}
 	};
 }

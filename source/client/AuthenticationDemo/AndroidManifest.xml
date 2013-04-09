@@ -36,6 +36,10 @@
             android:name="com.msdpe.authenticationdemo.CustomLoginActivity"
             android:label="@string/title_activity_custom_login" >
         </activity>
+        <activity
+            android:name="com.msdpe.authenticationdemo.RegisterAccountActivity"
+            android:label="@string/title_activity_register_account" >
+        </activity>
     </application>
 
 </manifest>

@@ -15,5 +15,10 @@
     <string name="cancel">Cancel</string>
     <string name="login">Login</string>
     <string name="register_for_account">Register for Account</string>
+    <string name="title_activity_register_account">RegisterAccountActivity</string>
+    <string name="register">Register</string>
+    <string name="confirm">Confirm:</string>
+    <string name="email">Email:</string>
+    <string name="user_id">User ID:</string>
 
 </resources>
