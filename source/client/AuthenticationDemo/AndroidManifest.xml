@@ -8,7 +8,10 @@
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
+        android:name="com.msdpe.authenticationdemo.AuthenticationApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -21,6 +24,17 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.msdpe.authenticationdemo.LoggedInActivity"
+            android:label="@string/title_activity_logged_in" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.msdpe.authenticationdemo.AuthenticationActivity" />
+        </activity>
+        <activity
+            android:name="com.msdpe.authenticationdemo.CustomLoginActivity"
+            android:label="@string/title_activity_custom_login" >
         </activity>
     </application>
 

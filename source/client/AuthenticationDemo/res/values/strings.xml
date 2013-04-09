@@ -4,5 +4,16 @@
     <string name="app_name">AuthenticationDemo</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="auth_demo">Auth Demo</string>
+    <string name="login_with_email">Login with Email</string>
+    <string name="title_activity_logged_in">LoggedInActivity</string>
+    <string name="youre_in">You\'re in!</string>
+    <string name="title_activity_custom_login">CustomLoginActivity</string>
+    <string name="custom_auth">Custom Auth</string>
+    <string name="username">Username:</string>
+    <string name="password">Password</string>
+    <string name="cancel">Cancel</string>
+    <string name="login">Login</string>
+    <string name="register_for_account">Register for Account</string>
 
 </resources>
