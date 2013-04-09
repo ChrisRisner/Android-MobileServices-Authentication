@@ -24,6 +24,7 @@ public class AuthenticationActivity extends Activity {
 	private ImageButton btnLoginWithTwitter;
 	private Button btnLoginWithEmail;
 	private Activity mActivity;
+	private AuthService mAuthService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +33,22 @@ public class AuthenticationActivity extends Activity {
 		
 		mActivity = this;
 		
+		AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
+		mAuthService = myApp.getAuthService();
+		
+		
+		
 		//Get UI Properties
 		btnLoginWithFacebook = (ImageButton) findViewById(R.id.btnLoginWithFacebook);
 		btnLoginWithGoogle = (ImageButton) findViewById(R.id.btnLoginWithGoogle);
 		btnLoginWithMicrosoft = (ImageButton) findViewById(R.id.btnLoginWithMicrosoft);
 		btnLoginWithTwitter = (ImageButton) findViewById(R.id.btnLoginWithTwitter);
 		btnLoginWithEmail = (Button) findViewById(R.id.btnLoginWithEmail);
+		
+		if (mAuthService.isUserAuthenticated()) {
+			Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
+			startActivity(loggedInIntent);
+		}
 		
 		//Set onclick listeners
 		btnLoginWithFacebook.setOnClickListener(loginWithProviderClickListener);
@@ -65,8 +76,7 @@ public class AuthenticationActivity extends Activity {
 	View.OnClickListener loginWithProviderClickListener = new OnClickListener() {		
 		@Override
 		public void onClick(View v) {
-			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-			final AuthService authService = myApp.getAuthService();
+			
 			
 			MobileServiceAuthenticationProvider provider = null;
 			if (v == btnLoginWithFacebook)
@@ -77,13 +87,14 @@ public class AuthenticationActivity extends Activity {
 				provider = MobileServiceAuthenticationProvider.MicrosoftAccount;
 			else if (v == btnLoginWithTwitter)
 				provider = MobileServiceAuthenticationProvider.Twitter;
-			authService.login(mActivity, provider, new UserAuthenticationCallback() {				
+			mAuthService.login(mActivity, provider, new UserAuthenticationCallback() {				
 				@Override
 				public void onCompleted(MobileServiceUser user, Exception exception,
 						ServiceFilterResponse response) {
-					authService.setContext(getApplicationContext());
+					mAuthService.setContext(getApplicationContext());
 					if (exception == null) {
 						//Take user to the logged in view
+						mAuthService.saveUserData();
 						Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 						startActivity(loggedInIntent);
 					} else {

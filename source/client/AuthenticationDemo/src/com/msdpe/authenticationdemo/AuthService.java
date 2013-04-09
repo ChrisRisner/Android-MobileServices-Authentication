@@ -4,8 +4,12 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.webkit.CookieManager;
@@ -65,6 +69,21 @@ public class AuthService {
 		public void getAuthData(TableJsonQueryCallback callback) {
 			mTableAuthData.where().execute(callback);
 		}
+		
+		public boolean isUserAuthenticated() {			
+			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
+			if (settings != null) {
+				String userId = settings.getString("userid", null);
+				String token = settings.getString("token", null);
+				if (userId != null && !userId.equals("")) {
+					MobileServiceUser user = new MobileServiceUser(userId);
+					user.setAuthenticationToken(token);
+					mClient.setCurrentUser(user);	
+					return true;
+				}
+			}
+			return false;
+		}
 
 		/***
 		 * Pulls the user ID and token out of a json object from the server
@@ -75,7 +94,16 @@ public class AuthService {
 			String token = jsonObject.getAsJsonPrimitive("token").getAsString();			
 			MobileServiceUser user = new MobileServiceUser(userId);
 			user.setAuthenticationToken(token);
-			mClient.setCurrentUser(user);
+			mClient.setCurrentUser(user);		
+			saveUserData();
+		}
+		
+		public void saveUserData() {
+			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
+	        SharedPreferences.Editor preferencesEditor = settings.edit();
+	        preferencesEditor.putString("userid", mClient.getCurrentUser().getUserId());
+	        preferencesEditor.putString("token", mClient.getCurrentUser().getAuthenticationToken());
+	        preferencesEditor.commit();
 		}
 
 		public void registerUser(String username, String password, String confirm,
@@ -90,9 +118,18 @@ public class AuthService {
 		}
 
 		public void logout() {
+			//Clear the cookies so they won't auto login to a provider again
 			CookieSyncManager.createInstance(mContext);
 			CookieManager cookieManager = CookieManager.getInstance();
 			cookieManager.removeAllCookie();
+			
+			//Clear the user id and token from the shared preferences
+			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
+	        SharedPreferences.Editor preferencesEditor = settings.edit();
+	        preferencesEditor.clear();
+	        preferencesEditor.commit();
+						
+	        //Clear the user and return to the auth activity
 			mClient.logout();
 			Intent logoutIntent = new Intent(mContext, AuthenticationActivity.class);
 			logoutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
