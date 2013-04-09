@@ -49,14 +49,14 @@ public class AuthService {
 		}
 
 		public void login(String username, String password, TableJsonOperationCallback callback) {
-			JsonObject newUser = new JsonObject();
-			newUser.addProperty("username", username);
-			newUser.addProperty("password", password);
+			JsonObject customUser = new JsonObject();
+			customUser.addProperty("username", username);
+			customUser.addProperty("password", password);
 			
 			List<Pair<String,String>> parameters = new ArrayList<Pair<String, String>>();
 			parameters.add(new Pair<String, String>("login", "true"));
 			
-			mTableAccounts.insert(newUser, parameters, callback);			
+			mTableAccounts.insert(customUser, parameters, callback);			
 		}
 		
 		public void getAuthData(TableJsonQueryCallback callback) {
@@ -73,6 +73,17 @@ public class AuthService {
 			MobileServiceUser user = new MobileServiceUser(userId);
 			user.setAuthenticationToken(token);
 			mClient.setCurrentUser(user);
+		}
+
+		public void registerUser(String username, String password, String confirm,
+				String email,
+				TableJsonOperationCallback callback) {
+			JsonObject newUser = new JsonObject();
+			newUser.addProperty("username", username);
+			newUser.addProperty("password", password);
+			newUser.addProperty("email", email);
+			
+			mTableAccounts.insert(newUser, callback);
 		}
 		
 

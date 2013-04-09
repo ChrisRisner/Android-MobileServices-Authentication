@@ -62,6 +62,12 @@ public class CustomLoginActivity extends Activity {
 	View.OnClickListener loginClickListener = new OnClickListener() {		
 		@Override
 		public void onClick(View v) {	
+			if (mTxtPassword.getText().toString().equals("") || 
+					mTxtUsername.getText().toString().equals("")) {
+				Log.w(TAG, "Username or password not entered");
+				return;
+			}
+			
 			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 			final AuthService authService = myApp.getAuthService();
 			authService.login(mTxtUsername.getText().toString(), mTxtPassword.getText().toString(), new TableJsonOperationCallback() {				
