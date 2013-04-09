@@ -13,9 +13,13 @@ import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.Build;
 
 public class LoggedInActivity extends Activity {
@@ -23,6 +27,7 @@ public class LoggedInActivity extends Activity {
 	private final String TAG = "LoggedInActivity";
 	private TextView lblUserIdValue;
 	private TextView lblUsernameValue;
+	private Button btnLogout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,10 @@ public class LoggedInActivity extends Activity {
 		//get UI elements
 		lblUserIdValue = (TextView) findViewById(R.id.lblUserIdValue);
 		lblUsernameValue = (TextView) findViewById(R.id.lblUsernameValue);
+		btnLogout = (Button) findViewById(R.id.btnLogout);
+		
+		//Set click listeners
+		btnLogout.setOnClickListener(logoutClickListener);
 		
 		AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 		AuthService authService = myApp.getAuthService();
@@ -77,5 +86,13 @@ public class LoggedInActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
+	
+	View.OnClickListener logoutClickListener = new OnClickListener() {		
+		@Override
+		public void onClick(View v) {	
+			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
+			AuthService authService = myApp.getAuthService();
+			authService.logout();
+		}
+	};
 }

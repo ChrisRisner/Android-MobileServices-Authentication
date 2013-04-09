@@ -39,10 +39,10 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
             android:text="TextView" />
-
     </RelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/relativeLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/RelativeLayout1"
@@ -61,7 +61,14 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
             android:text="TextView" />
-
     </RelativeLayout>
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/relativeLayout2"
+        android:layout_centerHorizontal="true"
+        android:text="@string/logout" />
 
 </RelativeLayout>

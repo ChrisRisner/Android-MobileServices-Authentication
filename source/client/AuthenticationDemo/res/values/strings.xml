@@ -20,5 +20,6 @@
     <string name="confirm">Confirm:</string>
     <string name="email">Email:</string>
     <string name="user_id">User ID:</string>
+    <string name="logout">Logout</string>
 
 </resources>

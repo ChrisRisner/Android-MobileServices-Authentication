@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.util.Pair;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceAuthenticationProvider;
@@ -83,7 +86,17 @@ public class AuthService {
 			newUser.addProperty("password", password);
 			newUser.addProperty("email", email);
 			
-			mTableAccounts.insert(newUser, callback);
+			mTableAccounts.insert(newUser, callback);			
+		}
+
+		public void logout() {
+			CookieSyncManager.createInstance(mContext);
+			CookieManager cookieManager = CookieManager.getInstance();
+			cookieManager.removeAllCookie();
+			mClient.logout();
+			Intent logoutIntent = new Intent(mContext, AuthenticationActivity.class);
+			logoutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+			mContext.startActivity(logoutIntent);			
 		}
 		
 
