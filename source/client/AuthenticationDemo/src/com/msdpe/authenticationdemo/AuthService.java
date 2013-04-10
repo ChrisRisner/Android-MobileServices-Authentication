@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.webkit.CookieManager;
@@ -214,6 +215,7 @@ public class AuthService {
 						});*/		
 						if (exception != null) {
 							Log.e(TAG, "Exception from onResponse: " + exception.getMessage());
+							Log.e(TAG, "Exception info: " + exception.toString());
 						}
 						StatusLine status = response.getStatus();
 						int statusCode = status.getStatusCode();
@@ -252,7 +254,20 @@ public class AuthService {
 													//nextServiceFilterCallback.onNext(request, this);
 													//Need to move this off the main thread
 													
-													mClient.getServiceFilter().handleRequest(request, nextServiceFilterCallback, responseCallback);
+//													final Runnable r = new Runnable() {
+//														public void run() {
+//															mClient.getServiceFilter().handleRequest(request, nextServiceFilterCallback, responseCallback);
+//														}
+//													};
+//													Handler handle = new Handler();
+//													handle.post(r);
+													
+													Thread thread = new Thread() {
+														public void run() {
+															mClient.getServiceFilter().handleRequest(request, nextServiceFilterCallback, responseCallback);
+														}
+													};
+													thread.start();
 													
 													//Take user to the logged in view
 													//mAuthService.saveUserData();
