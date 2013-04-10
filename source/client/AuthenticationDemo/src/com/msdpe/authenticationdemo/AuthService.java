@@ -2,6 +2,7 @@ package com.msdpe.authenticationdemo;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -261,6 +263,18 @@ public class AuthService {
 //													};
 //													Handler handle = new Handler();
 //													handle.post(r);
+
+													
+													Uri.Builder uriBuilder = Uri.parse(request.getUrl()).buildUpon();
+													uriBuilder.appendQueryParameter("bypass", "true");
+													try {
+														request.setUrl(uriBuilder.build().toString());
+													} catch (URISyntaxException e) {
+														Log.e(TAG, "Couldn't set request's new url: " + e.getMessage());
+														e.printStackTrace();
+													}
+													
+													Log.w(TAG, "new Url: " + request.getUrl());
 													
 													Thread thread = new Thread() {
 														public void run() {
