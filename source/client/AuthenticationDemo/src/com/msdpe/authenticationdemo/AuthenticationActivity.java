@@ -15,7 +15,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
 
-public class AuthenticationActivity extends Activity {
+public class AuthenticationActivity extends BaseActivity {
 	
 	private final String TAG = "AuthenticationActivity";
 	private ImageButton btnLoginWithFacebook;

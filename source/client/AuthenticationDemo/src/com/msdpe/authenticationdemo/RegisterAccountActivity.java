@@ -14,7 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class RegisterAccountActivity extends Activity {
+public class RegisterAccountActivity extends BaseActivity {
 	
 	private final String TAG = "RegisterAccountActivity";
 	private Button btnRegister;
@@ -73,7 +73,7 @@ public class RegisterAccountActivity extends Activity {
 						public void onCompleted(JsonObject jsonObject, Exception exception,
 								ServiceFilterResponse response) {
 							if (exception == null) {
-								authService.setUser(jsonObject);
+								authService.setUserAndSaveData(jsonObject);
 								mActivity.finish();
 								Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 								startActivity(loggedInIntent);

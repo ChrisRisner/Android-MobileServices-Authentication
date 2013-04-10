@@ -14,7 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class CustomLoginActivity extends Activity {
+public class CustomLoginActivity extends BaseActivity {
 	
 	private final String TAG = "CustomLoginActivity";
 	private Button mBtnCancel;
@@ -75,7 +75,7 @@ public class CustomLoginActivity extends Activity {
 				public void onCompleted(JsonObject jsonObject, Exception exception,
 						ServiceFilterResponse response) {
 					if (exception == null) {
-						authService.setUser(jsonObject);
+						authService.setUserAndSaveData(jsonObject);
 						Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 						startActivity(loggedInIntent);
 					} else {

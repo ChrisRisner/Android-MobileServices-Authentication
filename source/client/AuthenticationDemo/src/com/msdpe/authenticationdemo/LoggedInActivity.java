@@ -5,7 +5,9 @@ import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.TableJsonOperationCallback;
 import com.microsoft.windowsazure.mobileservices.TableJsonQueryCallback;
 
 import android.os.Bundle;
@@ -22,30 +24,41 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 
-public class LoggedInActivity extends Activity {
+public class LoggedInActivity extends BaseActivity {
 	
 	private final String TAG = "LoggedInActivity";
-	private TextView lblUserIdValue;
-	private TextView lblUsernameValue;
-	private Button btnLogout;
+	private TextView mLblUserIdValue;
+	private TextView mLblUsernameValue;
+	private Button mBtnLogout;
+	private Button mBtnTestNoRetry;
+	private Button mBtnTestRetry;
+	private TextView mLblInfo;
+	private Activity mActivity;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_logged_in);
+		
+		mActivity = this;
 
 		//get UI elements
-		lblUserIdValue = (TextView) findViewById(R.id.lblUserIdValue);
-		lblUsernameValue = (TextView) findViewById(R.id.lblUsernameValue);
-		btnLogout = (Button) findViewById(R.id.btnLogout);
+		mLblUserIdValue = (TextView) findViewById(R.id.lblUserIdValue);
+		mLblUsernameValue = (TextView) findViewById(R.id.lblUsernameValue);
+		mBtnLogout = (Button) findViewById(R.id.btnLogout);
+		mBtnTestNoRetry = (Button) findViewById(R.id.btnTestNoRetry);
+		mBtnTestRetry = (Button) findViewById(R.id.btnTestRetry);
+		mLblInfo = (TextView) findViewById(R.id.lblInfo);
 		
 		//Set click listeners
-		btnLogout.setOnClickListener(logoutClickListener);
+		mBtnLogout.setOnClickListener(logoutClickListener);
+		mBtnTestNoRetry.setOnClickListener(testNoRetryClickListener);
+		mBtnTestRetry.setOnClickListener(testRetryClickListener);
 		
 		AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 		AuthService authService = myApp.getAuthService();
 		
-		lblUserIdValue.setText(authService.getUserId());
+		mLblUserIdValue.setText(authService.getUserId());
 		
 		authService.getAuthData(new TableJsonQueryCallback() {			
 			@Override
@@ -54,7 +67,7 @@ public class LoggedInActivity extends Activity {
 				if (exception == null) {
 					JsonArray results = result.getAsJsonArray();
 					JsonElement item = results.get(0);
-					lblUsernameValue.setText(item.getAsJsonObject().getAsJsonPrimitive("UserName").getAsString());
+					mLblUsernameValue.setText(item.getAsJsonObject().getAsJsonPrimitive("UserName").getAsString());
 				} else {
 					Log.e(TAG, "There was an exception getting auth data: " + exception.getMessage());
 				}
@@ -92,7 +105,43 @@ public class LoggedInActivity extends Activity {
 		public void onClick(View v) {	
 			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 			AuthService authService = myApp.getAuthService();
-			authService.logout();
+			authService.logout(true);
+		}
+	};
+	
+	View.OnClickListener testRetryClickListener = new OnClickListener() {		
+		@Override
+		public void onClick(View v) {	
+			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
+			AuthService authService = myApp.getAuthService();
+			authService.currentAct = mActivity;
+			authService.testForced401(true, new TableJsonOperationCallback() {				
+				@Override
+				public void onCompleted(JsonObject jsonObject, Exception exception,
+						ServiceFilterResponse response) {					
+				}
+			});
+		}
+	};
+	
+	View.OnClickListener testNoRetryClickListener = new OnClickListener() {		
+		@Override
+		public void onClick(View v) {	
+			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
+			AuthService authService = myApp.getAuthService();			
+			
+			authService.testForced401(false, new TableJsonOperationCallback() {				
+				@Override
+				public void onCompleted(JsonObject jsonObject, Exception exception,
+						ServiceFilterResponse response) {	
+					
+					if (exception == null) {
+						mLblInfo.setText("Success testing 401");
+					} else {
+						Log.e(TAG, "Exception testing 401: " + exception.getMessage());
+					}
+				}
+			});
 		}
 	};
 }

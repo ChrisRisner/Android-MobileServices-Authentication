@@ -71,4 +71,39 @@
         android:layout_centerHorizontal="true"
         android:text="@string/logout" />
 
+    <RelativeLayout
+        android:id="@+id/relativeLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnLogout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="54dp" >
+
+        <Button
+            android:id="@+id/btnTestRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:text="@string/test_401_retry" />
+
+        <Button
+            android:id="@+id/btnTestNoRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:text="@string/test_401_no_retry" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/lblInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/btnLogout"
+        android:layout_below="@+id/relativeLayout3"
+        android:layout_marginTop="34dp"
+        android:text="Medium Text"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
 </RelativeLayout>
