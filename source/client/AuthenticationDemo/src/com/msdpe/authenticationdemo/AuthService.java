@@ -201,95 +201,48 @@ public class AuthService {
 			@Override
 			public void handleRequest(final ServiceFilterRequest request, final NextServiceFilterCallback nextServiceFilterCallback,
 					final ServiceFilterResponseCallback responseCallback) {
-				/*runOnUiThread(new Runnable() {
-					@Override
-					public void run() {//
-						mProgressBar.setVisibility(ProgressBar.VISIBLE);
-					}
-				});*/
 				
-				Log.i(TAG, "handleRequest: URL: " + request.getUrl());
-				nextServiceFilterCallback.onNext(request, new ServiceFilterResponseCallback() {
-					
+				nextServiceFilterCallback.onNext(request, new ServiceFilterResponseCallback() {				
 					@Override
 					public void onResponse(ServiceFilterResponse response, Exception exception) {
-						/*runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								mProgressBar.setVisibility(ProgressBar.GONE);
-							}
-						});*/		
-//						responseCallback.onResponse(response, exception);
-//						if (true)
-//						return;
-						
 						if (exception != null) {
-							Log.e(TAG, "Exception from onResponse: " + exception.getMessage());
-							Log.e(TAG, "Exception info: " + exception.toString());
+							Log.e(TAG, "MyServiceFilter onResponse Exception: " + exception.getMessage());
 						}
 						StatusLine status = response.getStatus();
-						int statusCode = status.getStatusCode();
-						Log.i("AuthService", "StatusCode: " + statusCode);
-						
+						int statusCode = status.getStatusCode();						
 						if (statusCode == 401) {
-							Log.e(TAG, "401 received!");
+							//Log the user out but don't send them to the login page
 							logout(false);
-							Log.e(TAG, "1");
 							//If we shouldn't retry (or they've used custom auth), 
 							//we're going to kick them out for now
+							//If you're doing custom auth, you'd need to show your own
+							//custom auth popup to login with
 							if (mShouldRetryAuth && !mIsCustomAuthProvider) {
-								Log.e(TAG, "2");
+								//Get the current activity for the context so we can show the login dialog
 								AuthenticationApplication myApp = (AuthenticationApplication) mContext;
 								Activity currentActivity = myApp.getCurrentActivity();
 								mClient.setContext(currentActivity);
-								Log.e(TAG, "3");
-//								for (long i = 0; i < 999999999; i++) {
-//									for (long j = 0; j < 99999999; j++) {
-//										for (long q = 0; q < 9999999; q++) {
-//											long p = i;
-//											p = j;
-//												p = q;
-//										}
-//									}
-//								}
-//								if (true)
-//								return;
-//								response.interupt();
-//if this is commented out, the app crashes becuase something is finishing my task								
+								//Return a response to the caller (otherwise returning from this method to 
+								//RequestAsyncTask will cause a crash).
 								responseCallback.onResponse(response, exception);
+								//Show the login dialog on the UI thread
 								currentActivity.runOnUiThread(new Runnable() {
 									@Override
 									public void run() {
-										Log.e(TAG, "4");
 										mClient.login(mProvider, new UserAuthenticationCallback() {				
 											@Override
 											public void onCompleted(MobileServiceUser user, Exception exception,
 													ServiceFilterResponse response) {
-												Log.e(TAG, "5");
-												//mAuthService.setContext(getApplicationContext());
 												if (exception == null) {
-													Log.w(TAG, "We should add the property and retry the request now");
+													//Save their updated user data locally
 													saveUserData();
-													Log.e(TAG, "6");
-													//ServiceFilterRequest newRequest = request;
-													//newRequest = new ServiceFilterRequestImpl();
+													//Pull out the previous request so we can retry it
 													ServiceFilterRequest previousRequest = request.getPreviousRequest();
+													//Update the requests X-ZUMO-AUTH header
 													previousRequest.removeHeader("X-ZUMO-AUTH");
 													previousRequest.addHeader("X-ZUMO-AUTH", mClient.getCurrentUser().getAuthenticationToken());
-													
-													Log.e(TAG, "7--token-" + mClient.getCurrentUser().getAuthenticationToken());
-													//nextServiceFilterCallback.onNext(request, this);
-													//Need to move this off the main thread
-													
-//													final Runnable r = new Runnable() {
-//														public void run() {
-//															mClient.getServiceFilter().handleRequest(request, nextServiceFilterCallback, responseCallback);
-//														}
-//													};
-//													Handler handle = new Handler();
-//													handle.post(r);
 
-													
+													//Add our BYPASS querystring parameter to the URL
 													Uri.Builder uriBuilder = Uri.parse(previousRequest.getUrl()).buildUpon();
 													uriBuilder.appendQueryParameter("bypass", "true");
 													try {
@@ -298,71 +251,41 @@ public class AuthService {
 														Log.e(TAG, "Couldn't set request's new url: " + e.getMessage());
 														e.printStackTrace();
 													}
-													Log.e(TAG, "8");
-													Log.w(TAG, "new Url: " + previousRequest.getUrl());
-													Log.w(TAG, "Old request type: " + request.getPreviousCalltype());
-													
-													//
+
+													//Call the appropriate method for the previous request type
+													//This is important because they have different callback 
+													//handlers (except insert/update)
 													String previousCalltype = request.getPreviousCalltype();
 													MobileServiceTableBase previousTable = request.getPreviousRequestTable();
 													if (previousCalltype.equals("INSERT")) {
-														Log.w(TAG, "Previous request was insert");	
 														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
 													} else if (previousCalltype.equals("UPDATE")) {
-														Log.w(TAG, "Previous request was update");
 														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
 													} else if (previousCalltype.equals("DELETE")) {
-														Log.w(TAG, "Previous request was delete");
 														previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
 													} else if (previousCalltype.equals("GET")) {
-														Log.w(TAG, "Previous request was get");
 														previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
-													}
-													
-													//Attempt to run it with another thread
-													/*Thread thread = new Thread() {
-														public void run() {
-															Log.e(TAG, "9");
-															//Uncomment this and it will perform the request but not call back
-															//mClient.getServiceFilter().handleRequest(request, nextServiceFilterCallback, responseCallback);
-															
-															
-															//mClient.setContext(mAppContext);
-														}
-													};
-													thread.start();*/
-													Log.e(TAG, "10");
-													//Take user to the logged in view
-													//mAuthService.saveUserData();
-													//Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
-													//startActivity(loggedInIntent);
+													}													
 												} else {
-													Log.e(TAG, "11");
 													Log.e(TAG, "User did not login successfully after 401");
+													//Kick user back to login screen
 													logout(true);
 												}
 												
 											}
 										});									
-									}
-										
-								});
-									
+									}										
+								});									
 							} else {
 								//Log them out and proceed with the response
 								logout(true);
-								Log.e(TAG, "12");
 								responseCallback.onResponse(response, exception);
 							}							
-						} else {
-							Log.e(TAG, "13");
+						} else {//
 							responseCallback.onResponse(response, exception);
 						}
 					}
 				});
 			}
 		}
-
-		
-
 }
