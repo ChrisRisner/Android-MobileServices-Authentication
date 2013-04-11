@@ -24,7 +24,6 @@ public class AuthenticationActivity extends BaseActivity {
 	private ImageButton btnLoginWithTwitter;
 	private Button btnLoginWithEmail;
 	private Activity mActivity;
-	private AuthService mAuthService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +31,7 @@ public class AuthenticationActivity extends BaseActivity {
 		setContentView(R.layout.activity_authentication);
 		
 		mActivity = this;
-		
-		AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-		mAuthService = myApp.getAuthService();
-		
-		
-		
+
 		//Get UI Properties
 		btnLoginWithFacebook = (ImageButton) findViewById(R.id.btnLoginWithFacebook);
 		btnLoginWithGoogle = (ImageButton) findViewById(R.id.btnLoginWithGoogle);
@@ -45,6 +39,7 @@ public class AuthenticationActivity extends BaseActivity {
 		btnLoginWithTwitter = (ImageButton) findViewById(R.id.btnLoginWithTwitter);
 		btnLoginWithEmail = (Button) findViewById(R.id.btnLoginWithEmail);
 		
+		//If user is already authenticated, bypass logging in
 		if (mAuthService.isUserAuthenticated()) {
 			Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 			startActivity(loggedInIntent);
@@ -59,8 +54,7 @@ public class AuthenticationActivity extends BaseActivity {
 			@Override
 			public void onClick(View v) {
 				Intent customLoginIntent = new Intent(getApplicationContext(), CustomLoginActivity.class);
-				startActivity(customLoginIntent);
-				
+				startActivity(customLoginIntent);				
 			}
 		});
 		
@@ -76,8 +70,6 @@ public class AuthenticationActivity extends BaseActivity {
 	View.OnClickListener loginWithProviderClickListener = new OnClickListener() {		
 		@Override
 		public void onClick(View v) {
-			
-			
 			MobileServiceAuthenticationProvider provider = null;
 			if (v == btnLoginWithFacebook)
 				provider = MobileServiceAuthenticationProvider.Facebook;
@@ -99,8 +91,7 @@ public class AuthenticationActivity extends BaseActivity {
 						startActivity(loggedInIntent);
 					} else {
 						Log.e(TAG, "User did not login successfully");
-					}
-					
+					}					
 				}
 			});
 		}

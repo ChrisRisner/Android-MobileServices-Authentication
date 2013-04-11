@@ -28,6 +28,7 @@ import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceAuthenticationProvider;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceJsonTable;
+import com.microsoft.windowsazure.mobileservices.MobileServiceRequestType;
 import com.microsoft.windowsazure.mobileservices.MobileServiceTableBase;
 import com.microsoft.windowsazure.mobileservices.MobileServiceUser;
 import com.microsoft.windowsazure.mobileservices.NextServiceFilterCallback;
@@ -251,21 +252,35 @@ public class AuthService {
 														Log.e(TAG, "Couldn't set request's new url: " + e.getMessage());
 														e.printStackTrace();
 													}
-
+													
 													//Call the appropriate method for the previous request type
 													//This is important because they have different callback 
 													//handlers (except insert/update)
-													String previousCalltype = request.getPreviousCalltype();
+													//String previousCalltype = request.getPreviousCalltype();
 													MobileServiceTableBase previousTable = request.getPreviousRequestTable();
-													if (previousCalltype.equals("INSERT")) {
+													switch (request.getPreviousCalltype()) {
+													case INSERT:
 														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-													} else if (previousCalltype.equals("UPDATE")) {
+														break;
+													case UPDATE:
 														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-													} else if (previousCalltype.equals("DELETE")) {
+														break;
+													case DELETE:
 														previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
-													} else if (previousCalltype.equals("GET")) {
+														break;
+													case GET: 
 														previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
-													}													
+														break;
+													}
+//													if (previousCalltype.equals("INSERT")) {
+//														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
+//													} else if (previousCalltype.equals("UPDATE")) {
+//														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
+//													} else if (previousCalltype.equals("DELETE")) {
+//														previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
+//													} else if (previousCalltype.equals("GET")) {
+//														previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
+//													}													
 												} else {
 													Log.e(TAG, "User did not login successfully after 401");
 													//Kick user back to login screen
