@@ -114,11 +114,16 @@ public class LoggedInActivity extends BaseActivity {
 		public void onClick(View v) {	
 			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 			AuthService authService = myApp.getAuthService();
-			authService.currentAct = mActivity;
 			authService.testForced401(true, new TableJsonOperationCallback() {				
 				@Override
 				public void onCompleted(JsonObject jsonObject, Exception exception,
-						ServiceFilterResponse response) {					
+						ServiceFilterResponse response) {
+					
+					if (exception == null) {
+						mLblInfo.setText("Success testing 401");
+					} else {
+						Log.e(TAG, "Exception testing 401: " + exception.getMessage());
+					}
 				}
 			});
 		}
