@@ -2,33 +2,25 @@ package com.msdpe.authenticationdemo;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.Header;
 import org.apache.http.StatusLine;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.widget.ProgressBar;
 
 import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceAuthenticationProvider;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceJsonTable;
-import com.microsoft.windowsazure.mobileservices.MobileServiceRequestType;
 import com.microsoft.windowsazure.mobileservices.MobileServiceTableBase;
 import com.microsoft.windowsazure.mobileservices.MobileServiceUser;
 import com.microsoft.windowsazure.mobileservices.NextServiceFilterCallback;
@@ -46,7 +38,6 @@ public class AuthService {
 		private MobileServiceJsonTable mTableAuthData;
 		private MobileServiceJsonTable mTableBadAuth;
 		private Context mContext;
-		private Context mAppContext;
 		private final String TAG = "AuthService";
 		private boolean mShouldRetryAuth;
 		private boolean mIsCustomAuthProvider = false;
@@ -58,8 +49,6 @@ public class AuthService {
 				mClient = new MobileServiceClient("https://myauthdemo.azure-mobile.net/", 
 						"HZatbbcDTUXflXkUFIlkcqeFxPMppl54", mContext)
 						.withFilter(new MyServiceFilter());
-				//TODO: this should be changed becuase we don't KNOW that mContext is the app context
-				mAppContext = mContext;
 				mTableAccounts = mClient.getTable("Accounts");
 				mTableAuthData = mClient.getTable("AuthData");
 				mTableBadAuth = mClient.getTable("BadAuth");
@@ -68,11 +57,7 @@ public class AuthService {
 			}
 		}
 		
-		public void login(Context activityContext, MobileServiceAuthenticationProvider provider, UserAuthenticationCallback callback) {
-			mProvider = provider;
-			mClient.setContext(activityContext);
-			mClient.login(provider, callback);
-		}
+		
 		
 		public void setContext(Context context) {
 			mClient.setContext(context);
@@ -81,7 +66,20 @@ public class AuthService {
 		public String getUserId() {
 			return mClient.getCurrentUser().getUserId();
 		}
+		
+		//Show the login dialog
+		public void login(Context activityContext, MobileServiceAuthenticationProvider provider, UserAuthenticationCallback callback) {
+			mProvider = provider;
+			mClient.setContext(activityContext);
+			mClient.login(provider, callback);
+		}
 
+		/**
+		 * Handles logging in with custom auth
+		 * @param username
+		 * @param password
+		 * @param callback
+		 */
 		public void login(String username, String password, TableJsonOperationCallback callback) {
 			JsonObject customUser = new JsonObject();
 			customUser.addProperty("username", username);
@@ -97,6 +95,10 @@ public class AuthService {
 			mTableAuthData.where().execute(callback);
 		}
 		
+		/**
+		 * Checks to see if we have userId and token stored on the device and sets them if so
+		 * @return
+		 */
 		public boolean isUserAuthenticated() {			
 			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
 			if (settings != null) {
@@ -110,6 +112,12 @@ public class AuthService {
 			return false;
 		}
 		
+		/**
+		 * Creates a nwe MobileServiceUser using a userId and token passed in.
+		 * Also sets the current provider
+		 * @param userId
+		 * @param token
+		 */
 		public void setUserData(String userId, String token) {
 			MobileServiceUser user = new MobileServiceUser(userId);
 			user.setAuthenticationToken(token);
@@ -143,6 +151,11 @@ public class AuthService {
 			saveUserData();
 		}
 		
+		/**
+		 * Saves userId and token to SharedPreferences.
+		 * NOTE:  This is not secure and is just used as a storage mechanism.  In reality, you would want to 
+		 * come up with a more secure way of storing this information.
+		 */
 		public void saveUserData() {
 			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
 	        SharedPreferences.Editor preferencesEditor = settings.edit();
@@ -151,6 +164,14 @@ public class AuthService {
 	        preferencesEditor.commit();
 		}
 
+		/**
+		 * Register the user if they're creating a custom auth account
+		 * @param username
+		 * @param password
+		 * @param confirm
+		 * @param email
+		 * @param callback
+		 */
 		public void registerUser(String username, String password, String confirm,
 				String email,
 				TableJsonOperationCallback callback) {
@@ -162,6 +183,14 @@ public class AuthService {
 			mTableAccounts.insert(newUser, callback);			
 		}
 
+		/**
+		 * Handles logging the user out including:
+		 * -deleting cookies so their login with a provider won't be cached in the web view
+		 * -removing the userdata from the shared preferences
+		 * -setting the current user object on the client to logged out
+		 * -optionally redirects to the login page if requested
+		 * @param shouldRedirectToLogin
+		 */
 		public void logout(boolean shouldRedirectToLogin) {
 			//Clear the cookies so they won't auto login to a provider again
 			CookieSyncManager.createInstance(mContext);
@@ -177,6 +206,7 @@ public class AuthService {
 	        //Clear the user and return to the auth activity
 			mClient.logout();
 			
+			//Take the user back to the auth activity to relogin if requested
 			if (shouldRedirectToLogin) {
 				Intent logoutIntent = new Intent(mContext, AuthenticationActivity.class);
 				logoutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -184,19 +214,22 @@ public class AuthService {
 			}
 		}
 		
+		/**
+		 * Calls a method on the server that will auto trigger a 401 result
+		 * @param shouldRetry
+		 * @param callback
+		 */
 		public void testForced401(boolean shouldRetry,
-				TableJsonOperationCallback callback) {
-			
+				TableJsonOperationCallback callback) {			
 			JsonObject data = new JsonObject();
 			data.addProperty("data", "data");
 			mShouldRetryAuth = shouldRetry;
-//			List<Pair<String,String>> parameters = new ArrayList<Pair<String, String>>();
-//			parameters.add(new Pair<String, String>("login", "true"));
-			
-			mTableBadAuth.insert(data, callback);
-			
+			mTableBadAuth.insert(data, callback);			
 		}
 		
+		/**
+		 * Custom ServiceFilter which facilitates retrys on 401s (if requested)
+		 */
 		private class MyServiceFilter implements ServiceFilter {
 			
 			@Override
@@ -256,31 +289,21 @@ public class AuthService {
 													//Call the appropriate method for the previous request type
 													//This is important because they have different callback 
 													//handlers (except insert/update)
-													//String previousCalltype = request.getPreviousCalltype();
 													MobileServiceTableBase previousTable = request.getPreviousRequestTable();
 													switch (request.getPreviousCalltype()) {
-													case INSERT:
-														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-														break;
-													case UPDATE:
-														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-														break;
-													case DELETE:
-														previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
-														break;
-													case GET: 
-														previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
-														break;
-													}
-//													if (previousCalltype.equals("INSERT")) {
-//														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-//													} else if (previousCalltype.equals("UPDATE")) {
-//														previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-//													} else if (previousCalltype.equals("DELETE")) {
-//														previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
-//													} else if (previousCalltype.equals("GET")) {
-//														previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
-//													}													
+														case INSERT:
+															previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
+															break;
+														case UPDATE:
+															previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
+															break;
+														case DELETE:
+															previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
+															break;
+														case GET: 
+															previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
+															break;
+													}											
 												} else {
 													Log.e(TAG, "User did not login successfully after 401");
 													//Kick user back to login screen

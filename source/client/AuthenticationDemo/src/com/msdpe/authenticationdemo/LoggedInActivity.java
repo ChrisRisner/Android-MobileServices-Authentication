@@ -1,8 +1,5 @@
 package com.msdpe.authenticationdemo;
 
-import java.util.ArrayList;
-import java.util.Map;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,7 +8,6 @@ import com.microsoft.windowsazure.mobileservices.TableJsonOperationCallback;
 import com.microsoft.windowsazure.mobileservices.TableJsonQueryCallback;
 
 import android.os.Bundle;
-import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,10 +15,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
-import android.support.v4.app.NavUtils;
-import android.annotation.TargetApi;
-import android.content.Intent;
-import android.os.Build;
 
 public class LoggedInActivity extends BaseActivity {
 	
@@ -33,14 +25,11 @@ public class LoggedInActivity extends BaseActivity {
 	private Button mBtnTestNoRetry;
 	private Button mBtnTestRetry;
 	private TextView mLblInfo;
-	private Activity mActivity;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_logged_in);
-		
-		mActivity = this;
 
 		//get UI elements
 		mLblUserIdValue = (TextView) findViewById(R.id.lblUserIdValue);
@@ -60,6 +49,7 @@ public class LoggedInActivity extends BaseActivity {
 		
 		mLblUserIdValue.setText(authService.getUserId());
 		
+		//Fetch auth data (the username) on load
 		authService.getAuthData(new TableJsonQueryCallback() {			
 			@Override
 			public void onCompleted(JsonElement result, int count, Exception exception,
@@ -86,16 +76,7 @@ public class LoggedInActivity extends BaseActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		/*case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			NavUtils.navigateUpFromSameTask(this);
-			return true;*/
+		
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -103,6 +84,7 @@ public class LoggedInActivity extends BaseActivity {
 	View.OnClickListener logoutClickListener = new OnClickListener() {		
 		@Override
 		public void onClick(View v) {	
+			//Just trigger a logout if this is clicked
 			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
 			AuthService authService = myApp.getAuthService();
 			authService.logout(true);
@@ -112,13 +94,11 @@ public class LoggedInActivity extends BaseActivity {
 	View.OnClickListener testRetryClickListener = new OnClickListener() {		
 		@Override
 		public void onClick(View v) {	
-			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-			AuthService authService = myApp.getAuthService();
-			authService.testForced401(true, new TableJsonOperationCallback() {				
+			//Trigger a 401 with retry
+			mAuthService.testForced401(true, new TableJsonOperationCallback() {				
 				@Override
 				public void onCompleted(JsonObject jsonObject, Exception exception,
-						ServiceFilterResponse response) {
-					
+						ServiceFilterResponse response) {					
 					if (exception == null) {
 						mLblInfo.setText("Success testing 401");
 					} else {
@@ -131,15 +111,12 @@ public class LoggedInActivity extends BaseActivity {
 	
 	View.OnClickListener testNoRetryClickListener = new OnClickListener() {		
 		@Override
-		public void onClick(View v) {	
-			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-			AuthService authService = myApp.getAuthService();			
-			
-			authService.testForced401(false, new TableJsonOperationCallback() {				
+		public void onClick(View v) {
+			//Trigger a 401 with no retry, should result in being logged out			
+			mAuthService.testForced401(false, new TableJsonOperationCallback() {				
 				@Override
 				public void onCompleted(JsonObject jsonObject, Exception exception,
-						ServiceFilterResponse response) {	
-					
+						ServiceFilterResponse response) {						
 					if (exception == null) {
 						mLblInfo.setText("Success testing 401");
 					} else {

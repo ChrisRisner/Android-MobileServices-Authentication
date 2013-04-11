@@ -1,8 +1,5 @@
 package com.msdpe.authenticationdemo;
 
-import com.google.gson.JsonObject;
-import com.microsoft.windowsazure.mobileservices.TableJsonOperationCallback;
-
 import android.app.Activity;
 import android.app.Application;
 

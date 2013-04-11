@@ -64,6 +64,7 @@ public class CustomLoginActivity extends BaseActivity {
 		public void onClick(View v) {	
 			if (mTxtPassword.getText().toString().equals("") || 
 					mTxtUsername.getText().toString().equals("")) {
+				//We're just logging this here, we should show something to the user
 				Log.w(TAG, "Username or password not entered");
 				return;
 			}
@@ -75,6 +76,8 @@ public class CustomLoginActivity extends BaseActivity {
 				public void onCompleted(JsonObject jsonObject, Exception exception,
 						ServiceFilterResponse response) {
 					if (exception == null) {
+						//If they've registered successfully, we'll save and set the userdata and then
+						//show the logged in activity
 						authService.setUserAndSaveData(jsonObject);
 						Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 						startActivity(loggedInIntent);

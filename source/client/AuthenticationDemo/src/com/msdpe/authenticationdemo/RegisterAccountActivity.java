@@ -51,7 +51,8 @@ public class RegisterAccountActivity extends BaseActivity {
 	
 	View.OnClickListener registerClickListener = new OnClickListener() {		
 		@Override
-		public void onClick(View v) {		
+		public void onClick(View v) {	
+			//We're just logging the validation errors, we should be showing something to the user
 			if (mTxtUsername.getText().toString().equals("") ||
 					mTxtPassword.getText().toString().equals("") ||
 					mTxtConfirm.getText().toString().equals("") ||
@@ -73,7 +74,9 @@ public class RegisterAccountActivity extends BaseActivity {
 						public void onCompleted(JsonObject jsonObject, Exception exception,
 								ServiceFilterResponse response) {
 							if (exception == null) {
+								//If that was successful, set and save the user data
 								authService.setUserAndSaveData(jsonObject);
+								//Finish this activity and run the logged in activity	
 								mActivity.finish();
 								Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 								startActivity(loggedInIntent);
