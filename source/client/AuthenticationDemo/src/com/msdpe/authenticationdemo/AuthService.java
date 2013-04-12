@@ -62,8 +62,8 @@ public class AuthService {
 		public AuthService(Context context) {
 			mContext = context;
 			try {
-				mClient = new MobileServiceClient("https://MyMobileServiceName.azure-mobile.net/", 
-						"MyMobileServiceApplicationKey", mContext)
+				mClient = new MobileServiceClient("https://myauthdemo.azure-mobile.net/", 
+						"HZatbbcDTUXflXkUFIlkcqeFxPMppl54", mContext)
 						.withFilter(new MyServiceFilter());
 				mTableAccounts = mClient.getTable("Accounts");
 				mTableAuthData = mClient.getTable("AuthData");
