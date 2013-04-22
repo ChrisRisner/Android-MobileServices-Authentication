@@ -62,8 +62,8 @@ public class AuthService {
 		public AuthService(Context context) {
 			mContext = context;
 			try {
-				mClient = new MobileServiceClient("https://myauthdemo.azure-mobile.net/", 
-						"HZatbbcDTUXflXkUFIlkcqeFxPMppl54", mContext)
+				mClient = new MobileServiceClient("https://<mobileserviceurl>.azure-mobile.net/", 
+						"<applicationkey>", mContext)
 						.withFilter(new MyServiceFilter());
 				mTableAccounts = mClient.getTable("Accounts");
 				mTableAuthData = mClient.getTable("AuthData");
@@ -140,8 +140,7 @@ public class AuthService {
 			mClient.setCurrentUser(user);	
 			
 			//Check for custom provider
-			String provider = userId.substring(0, userId.indexOf(":"));
-			
+			String provider = userId.substring(0, userId.indexOf(":"));			
 			if (provider.equals("Custom")) {
 				mProvider = null;
 				mIsCustomAuthProvider = true;
@@ -152,8 +151,7 @@ public class AuthService {
 			else if (provider.equals("MicrosoftAccount"))
 				mProvider = MobileServiceAuthenticationProvider.MicrosoftAccount;
 			else if (provider.equals("Google"))
-				mProvider = MobileServiceAuthenticationProvider.Google;
-				
+				mProvider = MobileServiceAuthenticationProvider.Google;				
 		}
 
 		/***
@@ -211,17 +209,14 @@ public class AuthService {
 			//Clear the cookies so they won't auto login to a provider again
 			CookieSyncManager.createInstance(mContext);
 			CookieManager cookieManager = CookieManager.getInstance();
-			cookieManager.removeAllCookie();
-			
+			cookieManager.removeAllCookie();			
 			//Clear the user id and token from the shared preferences
 			SharedPreferences settings = mContext.getSharedPreferences("UserData", 0);
 	        SharedPreferences.Editor preferencesEditor = settings.edit();
 	        preferencesEditor.clear();
-	        preferencesEditor.commit();
-						
+	        preferencesEditor.commit();						
 	        //Clear the user and return to the auth activity
-			mClient.logout();
-			
+			mClient.logout();			
 			//Take the user back to the auth activity to relogin if requested
 			if (shouldRedirectToLogin) {
 				Intent logoutIntent = new Intent(mContext, AuthenticationActivity.class);

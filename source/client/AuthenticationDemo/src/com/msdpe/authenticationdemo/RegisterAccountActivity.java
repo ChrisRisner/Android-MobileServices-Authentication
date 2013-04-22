@@ -79,9 +79,7 @@ public class RegisterAccountActivity extends BaseActivity {
 				Log.w(TAG, "The passwords you've entered don't match");
 				return;
 			} else {
-				AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-				final AuthService authService = myApp.getAuthService();
-				authService.registerUser(mTxtUsername.getText().toString(),
+				mAuthService.registerUser(mTxtUsername.getText().toString(),
 										 mTxtPassword.getText().toString(),
 										 mTxtConfirm.getText().toString(),
 										 mTxtEmail.getText().toString(),
@@ -91,7 +89,7 @@ public class RegisterAccountActivity extends BaseActivity {
 								ServiceFilterResponse response) {
 							if (exception == null) {
 								//If that was successful, set and save the user data
-								authService.setUserAndSaveData(jsonObject);
+								mAuthService.setUserAndSaveData(jsonObject);
 								//Finish this activity and run the logged in activity	
 								mActivity.finish();
 								Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);

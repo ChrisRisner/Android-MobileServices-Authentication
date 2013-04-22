@@ -83,18 +83,15 @@ public class CustomLoginActivity extends BaseActivity {
 				//We're just logging this here, we should show something to the user
 				Log.w(TAG, "Username or password not entered");
 				return;
-			}
-			
-			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-			final AuthService authService = myApp.getAuthService();
-			authService.login(mTxtUsername.getText().toString(), mTxtPassword.getText().toString(), new TableJsonOperationCallback() {				
+			}			
+			mAuthService.login(mTxtUsername.getText().toString(), mTxtPassword.getText().toString(), new TableJsonOperationCallback() {				
 				@Override
 				public void onCompleted(JsonObject jsonObject, Exception exception,
 						ServiceFilterResponse response) {
 					if (exception == null) {
 						//If they've registered successfully, we'll save and set the userdata and then
 						//show the logged in activity
-						authService.setUserAndSaveData(jsonObject);
+						mAuthService.setUserAndSaveData(jsonObject);
 						Intent loggedInIntent = new Intent(getApplicationContext(), LoggedInActivity.class);
 						startActivity(loggedInIntent);
 					} else {

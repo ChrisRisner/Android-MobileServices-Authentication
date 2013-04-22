@@ -101,9 +101,7 @@ public class LoggedInActivity extends BaseActivity {
 		@Override
 		public void onClick(View v) {	
 			//Just trigger a logout if this is clicked
-			AuthenticationApplication myApp = (AuthenticationApplication) getApplication();
-			AuthService authService = myApp.getAuthService();
-			authService.logout(true);
+			mAuthService.logout(true);
 		}
 	};
 	
