@@ -14,7 +14,7 @@ Below you will find requirements and deployment instructions.
 * /source/scripts - This contains copies of the server side scripts and requires script changes noted below.
 
 ## Additional Resources
-I've released two blog posts which walks through the code for this sample.  The [first deals with the server side scripts](http://chrisrisner.com/Authentication-with-Mobile-Services) and talks about how to set up the different auth providers.  The [second talks about the Android Client](http://chrisrisner.com/Authentication-with-Android-and-Windows-Azure-Mobile-Services) and how to connect that to the Mobile Service.
+I've released two blog posts which walks through the code for this sample.  The [first deals with the server side scripts](http://chrisrisner.com/Authentication-with-Windows-Azure-Mobile-Services) and talks about how to set up the different auth providers.  The [second talks about the Android Client](http://chrisrisner.com/Authentication-with-Android-and-Windows-Azure-Mobile-Services) and how to connect that to the Mobile Service.
 
 ## Android Mobile Service SDK Fork
 In order to facilitate retrying requests, some changes were made to the Android SDK for Mobile Services.  You can access the forked repo for the SDK [here](https://github.com/ChrisRisner/azure-mobile-services/tree/RetrySupport).  Once downloading the forked SDK, import it into Eclipse.  You should then be able to reference it from this project.  If you don't want to offer retry request support, the forked SDK is not necessary.  You'll just need to drop in the jars that come as part of the Mobile Services SDK for Android.
