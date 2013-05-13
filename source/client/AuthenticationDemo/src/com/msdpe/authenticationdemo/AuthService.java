@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.http.StatusLine;
 
@@ -37,7 +38,6 @@ import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceAuthenticationProvider;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceJsonTable;
-import com.microsoft.windowsazure.mobileservices.MobileServiceTableBase;
 import com.microsoft.windowsazure.mobileservices.MobileServiceUser;
 import com.microsoft.windowsazure.mobileservices.NextServiceFilterCallback;
 import com.microsoft.windowsazure.mobileservices.ServiceFilter;
@@ -242,6 +242,7 @@ public class AuthService {
 		 * Custom ServiceFilter which facilitates retrys on 401s (if requested)
 		 */
 		private class MyServiceFilter implements ServiceFilter {
+
 			
 			@Override
 			public void handleRequest(final ServiceFilterRequest request, final NextServiceFilterCallback nextServiceFilterCallback,
@@ -253,9 +254,12 @@ public class AuthService {
 						if (exception != null) {
 							Log.e(TAG, "MyServiceFilter onResponse Exception: " + exception.getMessage());
 						}
+						
+						
 						StatusLine status = response.getStatus();
 						int statusCode = status.getStatusCode();						
 						if (statusCode == 401) {
+							final CountDownLatch latch = new CountDownLatch(1);
 							//Log the user out but don't send them to the login page
 							logout(false);
 							//If we shouldn't retry (or they've used custom auth), 
@@ -267,54 +271,32 @@ public class AuthService {
 								AuthenticationApplication myApp = (AuthenticationApplication) mContext;
 								Activity currentActivity = myApp.getCurrentActivity();
 								mClient.setContext(currentActivity);
-								//Return a response to the caller (otherwise returning from this method to 
-								//RequestAsyncTask will cause a crash).
-								responseCallback.onResponse(response, exception);
-								//Show the login dialog on the UI thread
+								
 								currentActivity.runOnUiThread(new Runnable() {
 									@Override
 									public void run() {
-										mClient.login(mProvider, new UserAuthenticationCallback() {				
+										mClient.login(mProvider, new UserAuthenticationCallback() {											
 											@Override
 											public void onCompleted(MobileServiceUser user, Exception exception,
 													ServiceFilterResponse response) {
 												if (exception == null) {
 													//Save their updated user data locally
 													saveUserData();
-													//Pull out the previous request so we can retry it
-													ServiceFilterRequest previousRequest = request.getPreviousRequest();
 													//Update the requests X-ZUMO-AUTH header
-													previousRequest.removeHeader("X-ZUMO-AUTH");
-													previousRequest.addHeader("X-ZUMO-AUTH", mClient.getCurrentUser().getAuthenticationToken());
+													request.removeHeader("X-ZUMO-AUTH");
+													request.addHeader("X-ZUMO-AUTH", mClient.getCurrentUser().getAuthenticationToken());
 
 													//Add our BYPASS querystring parameter to the URL
-													Uri.Builder uriBuilder = Uri.parse(previousRequest.getUrl()).buildUpon();
+													Uri.Builder uriBuilder = Uri.parse(request.getUrl()).buildUpon();
 													uriBuilder.appendQueryParameter("bypass", "true");
 													try {
-														previousRequest.setUrl(uriBuilder.build().toString());
+														request.setUrl(uriBuilder.build().toString());
 													} catch (URISyntaxException e) {
 														Log.e(TAG, "Couldn't set request's new url: " + e.getMessage());
 														e.printStackTrace();
 													}
-													
-													//Call the appropriate method for the previous request type
-													//This is important because they have different callback 
-													//handlers (except insert/update)
-													MobileServiceTableBase previousTable = request.getPreviousRequestTable();
-													switch (request.getPreviousCalltype()) {
-														case INSERT:
-															previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-															break;
-														case UPDATE:
-															previousTable.executeInsertUpdateRequest(previousRequest, request.getPreviousCallback());
-															break;
-														case DELETE:
-															previousTable.executeDeleteRequest(request.getPreviousDeleteCallback(), previousRequest);
-															break;
-														case GET: 
-															previousTable.executeGetRequest(request.getPreviousQueryCallback(), previousRequest);
-															break;
-													}											
+													latch.countDown();
+																								
 												} else {
 													Log.e(TAG, "User did not login successfully after 401");
 													//Kick user back to login screen
@@ -322,9 +304,17 @@ public class AuthService {
 												}
 												
 											}
-										});									
-									}										
-								});									
+										});
+									}
+								});
+								try {
+									latch.await();
+								} catch (InterruptedException e) {
+									Log.e(TAG, "Interrupted exception: " + e.getMessage());
+									return;
+								}
+								
+								nextServiceFilterCallback.onNext(request, responseCallback);														
 							} else {
 								//Log them out and proceed with the response
 								logout(true);
