@@ -35,7 +35,7 @@ function insert(item, user, request) {
 	}
 	else {
 		// account creation - check username does not already exist
-        if (!item.username.match(/^[a-zA-Z0-9]{5,}$/)) {
+        if (!item.username.match(/^[a-zA-Z0-9]{4,}$/)) {
             request.respond(400, "Invalid username (at least 4 chars, alphanumeric only)");
             return;
         }
