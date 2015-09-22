@@ -1,3 +1,9 @@
+---
+services:
+platforms:
+author: azure
+---
+
 # Android - Mobile Services - Authentication
 This is an authentication sample which makes use of Windows Azure Mobile Services.  Mobile Services offers built in authentication with Facebook, Google, Microsoft, and Twitter as well as the possibility to implement your own custom authentication.  This sample was built using Eclipse, the Android SDK, and the Andorid Mobile Services SDK.  It was built using a minimum SDK version of 8 and a target version of 17.  
 
